@@ -18,6 +18,7 @@ import type {
   HouseholdProfile,
   SmogActionPlan,
 } from './types/airQuality.ts';
+import { parseApiResponse } from './utils/api.ts';
 import { calculateAdoptedImpact } from './utils/impactCalculator.ts';
 
 const DEFAULT_PROFILE: HouseholdProfile = {
@@ -81,13 +82,12 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ profile: targetProfile, airQuality: targetAir }),
         });
-        const data = (await res.json()) as {
+        const data = await parseApiResponse<{
           plan?: SmogActionPlan;
           airQuality?: AirQualityReading;
-          error?: string;
-        };
-        if (!res.ok || !data.plan) {
-          throw new Error(data.error || 'Could not generate tailored action plan.');
+        }>(res);
+        if (!data.plan) {
+          throw new Error('Could not generate tailored action plan.');
         }
         setPlan(data.plan);
         if (data.airQuality) {
@@ -118,10 +118,7 @@ export default function App() {
       setAirError(null);
       try {
         const res = await fetch(queryUrl);
-        const data = (await res.json()) as AirQualityReading & { error?: string };
-        if (!res.ok) {
-          throw new Error(data.error || 'Air quality lookup failed.');
-        }
+        const data = await parseApiResponse<AirQualityReading>(res);
         setAirQuality(data);
         const syncedProfile = { ...nextProfile, city: data.city };
         setProfile(syncedProfile);
@@ -223,13 +220,12 @@ export default function App() {
           history: nextHistory.slice(-6).map((m) => ({ role: m.role, content: m.content })),
         }),
       });
-      const data = (await res.json()) as {
+      const data = await parseApiResponse<{
         answer?: string;
         directImpactTakeaway?: string;
-        error?: string;
-      };
-      if (!res.ok || !data.answer) {
-        throw new Error(data.error || 'Advisor request failed.');
+      }>(res);
+      if (!data.answer) {
+        throw new Error('Advisor request failed.');
       }
       const replyMsg: AdvisorMessage = {
         id: `assistant-${Date.now()}`,

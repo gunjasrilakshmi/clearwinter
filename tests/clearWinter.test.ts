@@ -15,6 +15,7 @@ import {
 } from '../src/utils/validation.ts';
 import { TtlCache } from '../server/cache.ts';
 import { SlidingWindowRateLimiter } from '../server/rateLimiter.ts';
+import { parseApiResponse } from '../src/utils/api.ts';
 import type { SmogActionPlan } from '../src/types/airQuality.ts';
 
 test('calculateUsAqiFromPm25 computes accurate EPA breakpoints', () => {
@@ -152,3 +153,15 @@ test('SlidingWindowRateLimiter enforces request ceiling', () => {
   assert.equal(third.allowed, false);
   assert.ok(third.retryAfterSeconds >= 1);
 });
+
+test('parseApiResponse rejects plain-text 404 pages with clear error message', async () => {
+  const mock404 = new Response('The page could not be found', {
+    status: 404,
+    headers: { 'content-type': 'text/plain; charset=utf-8' },
+  });
+  await assert.rejects(
+    () => parseApiResponse(mock404),
+    /API endpoint not found \(404\)/,
+  );
+});
+
