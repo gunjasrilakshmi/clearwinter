@@ -1,0 +1,6 @@
+{
+  "name": "ClearWinter",
+  "description": "A GenAI-powered assistant helping families and communities navigate severe winter smog and urban air pollution with tailored low-emission routines, indoor air quality hacks, and measurable impact.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
